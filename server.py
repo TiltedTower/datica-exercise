@@ -21,13 +21,11 @@ class BaseResource:
 
 class RegisterResource:
     def on_post(self, req, resp):
-        # requires request body to contain username/password, optional info field
         body = json.load(req.stream)
         newUser = db.create_new_user(body)
-        
+
         if newUser is not None:
-            newUsername = { 'username': newUser['username'] }
-            sessionToken = credentials.generateToken(newUsername)
+            sessionToken = credentials.generateToken({ 'username': newUser['username'] })
             resp.set_cookie('datica_session', sessionToken, secure=False, domain='localhost')
             resp.body = json.dumps(newUser)
         else:
@@ -53,6 +51,8 @@ class AuthResource:
         else:
             raise falcon.HTTPBadRequest('Invalid Request', 'Username/Password is invalid')
 
+    @falcon.before(hooks.validateToken)
+    @falcon.before(hooks.authorizeUser)
     def on_delete(self, req, resp):
         resp.unset_cookie('datica_session')
         resp.body = json.dumps({ 'Status': 'Successful logout' })

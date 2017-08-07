@@ -26,7 +26,7 @@ def find_by_username(username):
 def create_new_user(userData):
     username = userData['username']
     password = credentials.generatePassword(userData['password'])
-    info = userData['info']
+    info = userData.get('info', {}) # sets default value of info as {} if none passed in
 
     query = """ INSERT INTO users
             (username, password, info)
